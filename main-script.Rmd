@@ -1,12 +1,12 @@
 ---
-title: "Chapter xx"
+title: "BES2019 Poster"
 
 author:
-- Eu^1^\*, Tu^2^, Ele^3^
-- ^1^Aqui, Brazil
-- ^2^Lá, Brazil
-- ^3^Acolá, Brazil
-- \*meliga@gagamail.com
+- Gracielle T. Higino^1^, ^2^ \*, Marcos V. C. Vital^2^
+- ^1^Department de Sciences Biologiques, Université de Montréal
+- ^2^Programa de Pós-Graduação em Ecologia e Evolução, Universidade Federal de Goiás
+- ^3^Departamento de Coisas Legais, Universidade Federal de Alagoas
+- \*graciellehigino@gmail.com
 
 date: "`r format(Sys.time(), '%d de %B de %Y')`"
 
@@ -84,53 +84,38 @@ tab <- captioner(prefix="Table")
 
 # Abstract
 
-Lá-lá-lá
+*BES*
+Biases and gaps on biodiversity data can have serious consequences on ecological and conservation research and actions, as it can lead to misconstrued hypotheses and incorrect conclusions. Although there is still digital knowledge to be found and organized, recent efforts on gathering global biodiversity data, such as data papers, have revealed long hidden information. Nevertheless, it is of major importance to map and describe the biases on the data we have available. Here we assessed terrestrial vertebrates inventory incompleteness at the Atlantic Rainforest and investigate if environmental variables are correlated to biodiversity knowledge. Our results showed clusters of quality information near big conservation centres. Environmental variables that commonly indicates species richness were not correlated to inventory completeness, but when only well-sampled units were analysed, mammals’ rarefaction slopes were correlated with potential evapotranspiration. Underexplored regions need urgent investments in sampling efforts to assess its real biodiversity and efficiently measure environmental impacts.
 
-**Keywords: aguardente, gelo, limão, açúcar**
+
+**Keywords: biodiversity digital knowledge, wallacean shortfall, macroecology, **
 
 ##### page break
 
 # Intro
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
 
 ##### page break
 
-# M & M
+# Methods
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
 
 ##### page break
 
 # Results
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+```{r importing data, echo=FALSE, warning=FALSE,message=FALSE,results='hide'}
+# geting zip files from Data Papers
+library(curl)
+```
+
 
 ##### page break
 
 # Discussion
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 ##### page break
 
