@@ -115,8 +115,18 @@ datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/
 
 # geting zip files from Data Papers
 
+temp <- tempfile()
+for (i in 1:length(datasource$url)){
+  download.file(datasource$url[i], temp)
+}
 
-library(curl)
+TODO - UNZIP AND READ FILES
+#### Not working #####
+#data <- read.csv(unz(temp, "./data/raw/datasource.dat"))
+#unlink(temp)
+#### Not working #####
+
+TODO - ORGANIZE ALL FILES IN A DATAFRAME
 
 ```
 
