@@ -63,8 +63,10 @@ ipak(packages_list <- c(
                        "rmarkdown", # required; do not exclude from this list
                        "pacman",    # required; do not exclude from this list
                        "captioner", # required; do not exclude from this list
-                       "git2r"      # required; do not exclude from this list
-                      )
+                       "git2r",     # required; do not exclude from this list
+                       "googlesheets",
+                       "curl"
+                       )
      )
 
 pacman::p_load_gh(char = c(
@@ -107,8 +109,15 @@ Biases and gaps on biodiversity data can have serious consequences on ecological
 # Results
 
 ```{r importing data, echo=FALSE, warning=FALSE,message=FALSE,results='hide'}
+# Read CSV with urls for all data
+devtools::install_github("tidyverse/googlesheets4")
+datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
+
 # geting zip files from Data Papers
+
+
 library(curl)
+
 ```
 
 
