@@ -1,0 +1,233 @@
+---
+title: "Chapter xx"
+
+author:
+- Eu^1^\*, Tu^2^, Ele^3^
+- ^1^Aqui, Brazil
+- ^2^Lá, Brazil
+- ^3^Acolá, Brazil
+- \*meliga@gagamail.com
+
+date: "`r format(Sys.time(), '%d de %B de %Y')`"
+
+knit: (function(inputFile, encoding) {
+      out_dir <- 'manuscript';
+      rmarkdown::render(inputFile,
+                        encoding = encoding,
+                        output_file = file.path(dirname(inputFile),
+                        out_dir,
+                        'manuscript.docx')) })
+output:
+  word_document:
+    reference_docx: manuscript/sources/template.docx
+csl: manuscript/sources/ecology-letters.csl
+bibliography:
+- manuscript/sources/library.bib
+- manuscript/sources/installed-r-packages.bib
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# http://stackoverflow.com/questions/28894515/rmarkdown-directing-output-file-into-a-directory
+out_dir <- 'manuscript'
+if(!file.exists(out_dir)) {
+  dir.create(out_dir)
+}
+```
+
+
+
+```{r r_packages, include = FALSE}
+# ipak function: install and load multiple R packages.
+# Check to see if packages are installed.
+# Install them if they are not, then load them into the R session.
+# https://gist.github.com/stevenworthington/3178163
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg))
+    {
+      install.packages(new.pkg,
+                       dependencies = TRUE,
+                       repos = "https://cloud.r-project.org")
+    }
+    suppressPackageStartupMessages(sapply(pkg, require, character.only = TRUE))
+}
+
+ipak(packages_list <- c(
+                       "devtools",  # required; do not exclude from this list
+                       "bibtex",    # required; do not exclude from this list
+                       "knitr",     # required; do not exclude from this list
+                       "rmarkdown", # required; do not exclude from this list
+                       "pacman",    # required; do not exclude from this list
+                       "captioner", # required; do not exclude from this list
+                       "git2r"      # required; do not exclude from this list
+                      )
+     )
+
+pacman::p_load_gh(char = c(
+                           # required; do not exclude from this list
+                           "benmarwick/wordcountaddin",
+                           # required; do not exclude from this list
+                           "ropensci/rcrossref"
+                           ),
+                  install = TRUE,
+                  dependencies = TRUE)
+
+write.bib(packages_list, "manuscript/sources/installed-r-packages.bib")
+
+fig <- captioner(prefix ="Figure")
+tab <- captioner(prefix="Table")
+```
+
+# Abstract
+
+Lá-lá-lá
+
+**Keywords: aguardente, gelo, limão, açúcar**
+
+##### page break
+
+# Intro
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+##### page break
+
+# M & M
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+##### page break
+
+# Results
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+##### page break
+
+# Discussion
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+##### page break
+
+# Conclusion
+
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit [@Vellend2001] in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+##### page break
+
+# R packages
+
+```{r eval = TRUE, echo = FALSE, results='asis'}
+cite_pkg <- function(pkg_list) {
+
+  packages <- sort(pkg_list)
+  cites <- lapply(packages, utils::citation)
+  cites.bib <- lapply(cites, utils::toBibtex)
+
+  # generate reference key
+  for (i in seq_len(length(cites.bib))) {
+    cites.bib[[i]] <-
+      sub(
+        pattern = "\\{,$",
+        replacement = paste0("{", packages[i], ","),
+        x = cites.bib[[i]]
+      )
+  }
+
+  # write bibtex references to file
+  writeLines(enc2utf8(unlist(cites.bib)), con = "manuscript/sources/pkg-refs.bib", useBytes = TRUE)
+
+  # return named list of bibtex references
+  names(cites.bib) <- packages # pkgs
+
+  writeLines(paste("- ", names(cites.bib), " [@", names(cites.bib), "]", sep = ""))
+}
+
+
+cite_pkg(packages_list)
+```
+
+##### page break
+
+# References
+
+<!-- https://stackoverflow.com/a/44294306/5974372 -->
+
+<div id="refs"></div>
+
+##### page break
+
+# Tables
+
+<!-- https://datascienceplus.com/r-markdown-how-to-number-and-reference-tables/ -->
+
+
+```{r, eval=TRUE, echo=FALSE, results='asis'}
+cat(tab(name = "tab_exemplo", "Apenas um exempĺo de como aplicar a legenda em uma tabela."))
+knitr::kable(x = head(mtcars), format = "markdown", align = "c")
+```
+
+##### page break
+
+# Figures
+
+```{r, echo=FALSE, eval=TRUE, results='asis', fig.height=10, fig.width=10}
+plot(1:10, pch = 21, bg = "red")
+cat("\n", fig(name = "fig_exemplo", "Apenas um exemplo de como aplicar a legenda em um figura."))
+```
+
+##### page break
+
+External figures can also be included using the `include_graphics` function. Example code below:
+
+```{r, echo=TRUE, eval=FALSE}
+include_graphics(path = "pasta/da/minha/figura", dpi = "2in")
+```
+
+##### page break
+
+# Appendix
+
+##### page break
+
+Word count by *wordcountaddin* package
+
+```{r, echo=TRUE, eval=TRUE, message=FALSE}
+wordcountaddin::text_stats(filename = "main-script.Rmd")
+```
+
+##### page break
+
+```{r session-info}
+sessionInfo()
+```
