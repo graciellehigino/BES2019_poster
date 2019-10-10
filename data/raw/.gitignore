@@ -35,11 +35,3 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 .Rproj.user
-
-# Datasources
-*.zip
-*.rar
-*.csv
-/DataS1
-/Dataset
-/_MACOSX

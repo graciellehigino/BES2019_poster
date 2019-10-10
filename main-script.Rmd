@@ -64,8 +64,9 @@ ipak(packages_list <- c(
                        "pacman",    # required; do not exclude from this list
                        "captioner", # required; do not exclude from this list
                        "git2r",     # required; do not exclude from this list
-                       "googlesheets",
-                       "curl"
+                       "googlesheets4",
+                       "curl",
+                       "rgbif"
                        )
      )
 
@@ -110,23 +111,26 @@ Biases and gaps on biodiversity data can have serious consequences on ecological
 
 ```{r importing data, echo=FALSE, warning=FALSE,message=FALSE,results='hide'}
 # Read CSV with urls for all data
-devtools::install_github("tidyverse/googlesheets4")
+#devtools::install_github("tidyverse/googlesheets4")
 datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
 
 # geting zip files from Data Papers
 
-temp <- tempfile()
+if(file.exists("data/data.Rdata")){
+  load("data/data.Rdata")
+} else {
+  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756"))
+
+filenumbers <- 1:length(datasource$url)
+filenames <- paste0("data/raw/file", filenumbers, ".zip")
+
 for (i in 1:length(datasource$url)){
-  download.file(datasource$url[i], temp)
+    files <-  list(download.file(datasource$url[i], filenames[i]))
+    unzip(filenames[i], exdir = "/data/raw")
+    }
 }
 
-TODO - UNZIP AND READ FILES
-#### Not working #####
-#data <- read.csv(unz(temp, "./data/raw/datasource.dat"))
-#unlink(temp)
-#### Not working #####
-
-TODO - ORGANIZE ALL FILES IN A DATAFRAME
+#TODO - ORGANIZE ALL FILES IN A DATAFRAME AND SAVE EVERYTHING IN "data/data.Rdata" or something like that
 
 ```
 
