@@ -121,16 +121,47 @@ if(file.exists("data/data.Rdata")){
 } else {
   gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756"))
 
-filenumbers <- 1:length(datasource$url)
-filenames <- paste0("data/raw/file", filenumbers, ".zip")
-
-for (i in 1:length(datasource$url)){
-    files <-  list(download.file(datasource$url[i], filenames[i]))
-    unzip(filenames[i], exdir = "/data/raw")
-    }
-}
+  filenumbers <- 1:length(datasource$url)
+  filenames <- paste0("data/raw/file", filenumbers, ".zip")
+  
+  for (i in 1:length(datasource$url)){
+      files <-  list(download.file(datasource$url[i], filenames[i]))
+      unzip(filenames[i], exdir = "/data/raw")
+      }
+  }
 
 #TODO - ORGANIZE ALL FILES IN A DATAFRAME AND SAVE EVERYTHING IN "data/data.Rdata" or something like that
+##Draft
+
+#library(dplyr)
+
+## Amphibia - Datapapers
+amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
+                read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
+
+# Bat data messed up as fuck
+# bat_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_BATS_Capture.csv"),
+#                 read.csv("data/raw/ATLANTIC_BATS_Study_site.csv"), by = "ID")
+#
+
+# Small Mammals
+mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
+                read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+
+# Camtraps Mammals
+mamct_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
+                read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+
+# Birds
+birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
+
+# what the hell
+head(read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv"))
+
+# What the hell 2
+mamagain <- read.csv("data/raw/Mammals_UPRB_study_sites.csv")
+
+save(c(gbif, amp_dp, mamct_dp, mamsmall_dp, mamagain, birds_dp), "occ_data.Rdata")
 
 ```
 
