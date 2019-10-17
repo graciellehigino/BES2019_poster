@@ -140,9 +140,18 @@ amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
                 read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
 
 # Bat data messed up as fuck
-# bat_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_BATS_Capture.csv"),
-#                 read.csv("data/raw/ATLANTIC_BATS_Study_site.csv"), by = "ID")
-#
+bat_capture <- read.csv("data/raw/ATLANTIC_BATS_Capture.csv") # read data with species names
+cols <- strsplit(colnames(bat_capture), "[.]|[,]", fixed = FALSE) # creat column names vector to use on `separate`
+cols <-  cols[[1]][! cols[[1]] %in% ""]
+
+bat_capture <- tidyr::separate(bat_capture, 1, cols, sep = "[,]", remove = TRUE) # separate data in proper columns
+
+bat_sites <-  read.csv("data/raw/ATLANTIC_BATS_Study_site.csv") # read data with coordinates
+
+bat_dp <- dplyr::inner_join(bat_capture, bat_sites, by = "ID") # merge
+
+rm(cols, bat_capture, bat_sites)
+
 
 # Small Mammals
 mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
@@ -155,11 +164,16 @@ mamct_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
 # Birds
 birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
 
-# what the hell
-head(read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv"))
+# Primates
+mamprim_dp <-  read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv", sep = ";")
 
 # What the hell 2
-mamagain <- read.csv("data/raw/Mammals_UPRB_study_sites.csv")
+sites <- read.csv("data/raw/Mammals_UPRB_study_sites.csv") #esse tá ok
+sp <- readr::read_csv("data/raw/Mammals_UPRB_species.csv") # esse tá uma desgraça
+
+#TODO rearranjar colunas "site_x" em uma única coluna com 52 fatores idênticos a levels(sites$site)
+
+mamagain <- dplyr::inner_join(sites, species, by = "site")
 
 save(c(gbif, amp_dp, mamct_dp, mamsmall_dp, mamagain, birds_dp), "occ_data.Rdata")
 
