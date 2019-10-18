@@ -136,7 +136,7 @@ if(file.exists("data/data.Rdata")){
   amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
                   read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
   
-  # Bat data messed up as fuck
+  # Bats
   bat_capture <- read.csv("data/raw/ATLANTIC_BATS_Capture.csv") # read data with species names
   cols <- strsplit(colnames(bat_capture), "[.]|[,]", fixed = FALSE) # creat column names vector to use on `separate`
   cols <-  cols[[1]][! cols[[1]] %in% ""]
@@ -173,9 +173,19 @@ if(file.exists("data/data.Rdata")){
   
   rm(sites,sp)
   
-  save(c(gbif, amp_dp, mamct_dp, mamsmall_dp, mamagain, birds_dp), "occ_data.Rdata")
+  # Data Dryad - for future us
+
+  #TODO load gbif data once to save it on Rdata
+  # gbif <- rgbif::occ_download_import(as.download("data/raw/0023533-180131172636756.zip"))
+  
+  # Save everything
+  save(c(gbif, amp_dp, bat_dp, mamsmall_dp, mamsmall2_dp, mamct_dp, mamprim, birds_dp), "data/raw/occ_data.Rdata")
 
 }
+```
+```{r Combining all datasets in one}
+
+df_total <- 
 ```
 
 
