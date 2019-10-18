@@ -66,7 +66,9 @@ ipak(packages_list <- c(
                        "git2r",     # required; do not exclude from this list
                        "googlesheets4",
                        "curl",
-                       "rgbif"
+                       "rgbif",
+                       "tidyr",
+                       "dplyr"
                        )
      )
 
@@ -119,7 +121,7 @@ datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/
 if(file.exists("data/data.Rdata")){
   load("data/data.Rdata")
 } else {
-  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756"))
+  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw"))
 
   filenumbers <- 1:length(datasource$url)
   filenames <- paste0("data/raw/file", filenumbers, ".zip")
@@ -128,55 +130,52 @@ if(file.exists("data/data.Rdata")){
       files <-  list(download.file(datasource$url[i], filenames[i]))
       unzip(filenames[i], exdir = "/data/raw")
       }
-  }
-
-#TODO - ORGANIZE ALL FILES IN A DATAFRAME AND SAVE EVERYTHING IN "data/data.Rdata" or something like that
-##Draft
-
-#library(dplyr)
-
-## Amphibia - Datapapers
-amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
-                read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
-
-# Bat data messed up as fuck
-bat_capture <- read.csv("data/raw/ATLANTIC_BATS_Capture.csv") # read data with species names
-cols <- strsplit(colnames(bat_capture), "[.]|[,]", fixed = FALSE) # creat column names vector to use on `separate`
-cols <-  cols[[1]][! cols[[1]] %in% ""]
-
-bat_capture <- tidyr::separate(bat_capture, 1, cols, sep = "[,]", remove = TRUE) # separate data in proper columns
-
-bat_sites <-  read.csv("data/raw/ATLANTIC_BATS_Study_site.csv") # read data with coordinates
-
-bat_dp <- dplyr::inner_join(bat_capture, bat_sites, by = "ID") # merge
-
-rm(cols, bat_capture, bat_sites)
 
 
-# Small Mammals
-mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
-                read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+  ## Amphibia - Datapapers
+  amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
+                  read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
+  
+  # Bat data messed up as fuck
+  bat_capture <- read.csv("data/raw/ATLANTIC_BATS_Capture.csv") # read data with species names
+  cols <- strsplit(colnames(bat_capture), "[.]|[,]", fixed = FALSE) # creat column names vector to use on `separate`
+  cols <-  cols[[1]][! cols[[1]] %in% ""]
+  
+  bat_capture <- tidyr::separate(bat_capture, 1, cols, sep = "[,]", remove = TRUE) # separate data in proper columns
+  
+  bat_sites <-  read.csv("data/raw/ATLANTIC_BATS_Study_site.csv") # read data with coordinates
+  
+  bat_dp <- dplyr::inner_join(bat_capture, bat_sites, by = "ID") # merge
+  
+  rm(cols, bat_capture, bat_sites)
+  
+  
+  # Small Mammals
+  mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
+                  read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+  
+  # Camtraps Mammals
+  mamct_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
+                  read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+  
+  # Birds
+  birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
+  
+  # Primates
+  mamprim_dp <-  read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv", sep = ";")
+  
+  # Small mammals
+  sites <- read.csv("data/raw/Mammals_UPRB_study_sites.csv")
+  sp <- readr::read_csv("data/raw/Mammals_UPRB_species.csv")
+  sp <- tidyr::pivot_longer(sp, dplyr::contains("ite_"), names_to = "site", values_to = "abundance", names_prefix = "site_")
+  sp <- filter(sp, sp$abundance != 0)
+  mamsmall2_dp <- dplyr::inner_join(sites, sp, by = "site")
+  
+  rm(sites,sp)
+  
+  save(c(gbif, amp_dp, mamct_dp, mamsmall_dp, mamagain, birds_dp), "occ_data.Rdata")
 
-# Camtraps Mammals
-mamct_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
-                read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
-
-# Birds
-birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
-
-# Primates
-mamprim_dp <-  read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv", sep = ";")
-
-# What the hell 2
-sites <- read.csv("data/raw/Mammals_UPRB_study_sites.csv") #esse tá ok
-sp <- readr::read_csv("data/raw/Mammals_UPRB_species.csv") # esse tá uma desgraça
-
-#TODO rearranjar colunas "site_x" em uma única coluna com 52 fatores idênticos a levels(sites$site)
-
-mamagain <- dplyr::inner_join(sites, species, by = "site")
-
-save(c(gbif, amp_dp, mamct_dp, mamsmall_dp, mamagain, birds_dp), "occ_data.Rdata")
-
+}
 ```
 
 
