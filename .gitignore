@@ -43,3 +43,5 @@ rsconnect/
 /DataS1
 /Dataset
 /_MACOSX
+*.txt
+*.xml

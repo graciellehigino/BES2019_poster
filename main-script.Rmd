@@ -122,7 +122,9 @@ if(file.exists("data/data.Rdata")){
   load("data/data.Rdata")
 } else {
   gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw"))
-
+  
+  #gbif <- occ_download_import(as.download("data/raw/0023533-180131172636756.zip"))
+  
   filenumbers <- 1:length(datasource$url)
   filenames <- paste0("data/raw/file", filenumbers, ".zip")
   
@@ -130,7 +132,7 @@ if(file.exists("data/data.Rdata")){
       files <-  list(download.file(datasource$url[i], filenames[i]))
       unzip(filenames[i], exdir = "/data/raw")
       }
-
+  rm(filenumbers, filenames, files)
 
   ## Amphibia - Datapapers
   amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
@@ -174,12 +176,14 @@ if(file.exists("data/data.Rdata")){
   rm(sites,sp)
   
   # Data Dryad - for future us
-
-  #TODO load gbif data once to save it on Rdata
-  # gbif <- rgbif::occ_download_import(as.download("data/raw/0023533-180131172636756.zip"))
   
+  # iDigBio
+  download.file("http://s.idigbio.org/idigbio-downloads/48532368-4e8e-4166-90f9-a4ee28002a4b.zip", "data/raw/idigbio.zip")
+  unzip("data/raw/idigbio.zip", exdir = "data/raw")
+  idigbio <- read.csv("data/raw/occurrence_raw.csv")
+
   # Save everything
-  save(c(gbif, amp_dp, bat_dp, mamsmall_dp, mamsmall2_dp, mamct_dp, mamprim, birds_dp), "data/raw/occ_data.Rdata")
+  save(c(gbif, amp_dp, bat_dp, mamsmall_dp, mamsmall2_dp, mamct_dp, mamprim, birds_dp, idigbio), "data/raw/occ_data.Rdata")
 
 }
 ```
