@@ -121,7 +121,7 @@ datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/
 if(file.exists("data/data.Rdata")){
   load("data/data.Rdata")
 } else {
-  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw"))
+  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw"), quote = "")
   
   #gbif <- occ_download_import(as.download("data/raw/0023533-180131172636756.zip"))
   
