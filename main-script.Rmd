@@ -243,18 +243,34 @@ idigbio <- idigbio %>%
     rename(
       latitude = dwc.decimalLatitude,
       longitude = dwc.decimalLongitude,
-      class = dwc.class,
+      class = dwc.classs,
       species = dwc.scientificName
     ) %>%
     select(class, species, latitude, longitude) %>%
+    drop_na() %>% 
     group_by(species) %>%
     distinct(latitude, longitude, .keep_all = TRUE) %>%
     ungroup()
 
+#TODO  # Split iDigBio into classes
+  # Retrieving class from scientific name
+  library(taxize)
+  classes <- vector()  
+  sp <- vector()
+  for (i in 1:100){#nrow(idigbio)){
+    sp[i] <- c(strsplit(as.character(idigbio$species[[i]]), ",")[[1]][1])
+  }
 
-#TODO  # Split into classes
+  for (i in 1:100){#nrow(idigbio))
+    classes[i] <- c(classification(sp[i], db = "gbif", rows = 1)[[1]][[1]][3])
+  }
   
-
+  idigbio$class <- classes # replace class column with new variable
+  
+  classes_list <- split.data.frame(idigbio, idigbio$class) #split df into classes
+  
+  #TODO merge each element of the previous list with its corresponding data
+  
 ## GBIF
 # gbif <-
 #   gbif %>% 
