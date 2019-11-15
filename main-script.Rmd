@@ -257,10 +257,6 @@ idigbio <- idigbio %>%
 # Retrieving class from scientific name
   #Getting scientific names
   classes <- vector()  
-  sp <- vector()
-  for (i in 1:nrow(idigbio)){
-    sp[i] <- c(strsplit(as.character(idigbio$species[[i]]), ",")[[1]][1])
-  }
   
   c <- makeCluster(detectCores()-1)
   
@@ -273,32 +269,29 @@ idigbio <- idigbio %>%
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
   
-  idb_spnames<-parLapply(c, sp, gnr_resolve ,data_source_ids=c(173,3,4,11,174,175),
+  idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
+                         data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
+ 
   
 #TODO  # Get valid names 
+# test - https://www.r-bloggers.com/use-case-combining-taxize-and-rgbif/
 #NOTE 20191112 - saved idigbio and idb_spnames in 'data/raw/idigbio.Rdata'. Load it next time.
-##= NOT WORKING
+#
+#load("data/raw/idigbio.Rdata")
+
   sp.val <- vector()
-  unresolved <- vector()
   for (i in 1:length(idb_spnames)){
     if (length(idb_spnames[i][[1]]>0)){
       sp.val[i] <- idb_spnames[[i]]$matched_name
-    } else {
-      #if (length(attr(idb_spnames[i][[1]], "not_known"))>0) {
-      unresolved[i] <-  attr(idb_spnames[i][[1]], "not_known")
-      # } else {
-      #   unresolved[i] <- NA
-      # }
     }
   }
-##= NOT WORKING  
   
   # Getting classes of species
-  t <- parLapply(c, idb_spnames,
+  t <- parLapply(c, sp.val,
           classification, db="gbif", rows=1)
   
   for (i in 1:end(sp)){
