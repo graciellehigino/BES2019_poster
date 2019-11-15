@@ -276,19 +276,18 @@ idigbio <- idigbio %>%
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
  
-  
-#TODO  # Get valid names 
-# test - https://www.r-bloggers.com/use-case-combining-taxize-and-rgbif/
-#NOTE 20191112 - saved idigbio and idb_spnames in 'data/raw/idigbio.Rdata'. Load it next time.
-#
-#load("data/raw/idigbio.Rdata")
-
   sp.val <- vector()
   for (i in 1:length(idb_spnames)){
     if (length(idb_spnames[i][[1]]>0)){
       sp.val[i] <- idb_spnames[[i]]$matched_name
     }
   }
+#NOTE 20191114 - saved idigbio, idb_spnames and sp.val in 'data/raw/idigbio.Rdata'. Load it next time.
+#
+#load("data/raw/idigbio.Rdata")
+
+# TODO get classes of valid names
+# body working, but time consuming
   
   # Getting classes of species
   t <- parLapply(c, sp.val,
