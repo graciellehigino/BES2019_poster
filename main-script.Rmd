@@ -122,6 +122,8 @@ Biases and gaps on biodiversity data can have serious consequences on ecological
 # Results
 
 ```{r importing data, echo=FALSE, warning=FALSE,message=FALSE,results='hide'}
+c <- makeCluster(detectCores()-1)
+
 # Read CSV with urls for all data
 #devtools::install_github("tidyverse/googlesheets4")
 #datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
@@ -255,10 +257,10 @@ idigbio <- idigbio %>%
 
 #TODO  ## Split iDigBio into classes
 # Retrieving class from scientific name
-  #Getting scientific names
-  classes <- vector()  
+
+  classes <- vector(length = nrow(idigbio))  
   
-  c <- makeCluster(detectCores()-1)
+  
   
   # Resolving sci. names
   # Data Sources IDs:
@@ -269,6 +271,12 @@ idigbio <- idigbio %>%
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
   
+  #TODO split names and glue together only the actual words
+  #redo grn_resolve and classification
+  
+  idb_sp <- idigbio$species
+  idb_sp <- strsplit(as.character(idb_sp), split="[*\\ \\d ]")
+  
   idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
@@ -276,7 +284,7 @@ idigbio <- idigbio %>%
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
  
-  sp.val <- vector()
+  sp.val <- vector() #do it with a set length
   for (i in 1:length(idb_spnames)){
     if (length(idb_spnames[i][[1]]>0)){
       sp.val[i] <- idb_spnames[[i]]$matched_name
@@ -290,12 +298,33 @@ idigbio <- idigbio %>%
 # body working, but time consuming
   
   # Getting classes of species
-  t <- parLapply(c, sp.val,
+  classif <- parLapply(c, sp.val,
           classification, db="gbif", rows=1)
-  
-  for (i in 1:end(sp)){
-    classes[i] <- filter(t[[i]][[1]], rank=="class")[,1]
+  # 
+  # purrr::transpose(head(classif))
+  # 
+  # library(purrr)
+  # 
+  # classif[1:10] %>% flatten %>% map(~ split(.$name, .$rank)) %>% transpose %>% map(flatten_chr)
+  # # purrr::keep or discard()
+  # 
+  # purrr::flatten(head(classif)) %>% purrr::transpose(.)
+  classes <- vector(length = length(classif))
+  class_name <- function(x) {
+    for (i in 1:length(x)){
+      if (is.na(x[[i]][[1]])){
+        classes[i] <- "NA"
+      } else {
+        if (length(x[[i]][[1]][x[[i]][[1]][,2]=="class",1])==0){
+        classes[i] <- "NA"
+        } else {
+          classes[i] <- x[[i]][[1]][x[[i]][[1]][,2]=="class",1]
+        }
+      }
+    }
   }
+  
+  classes_teste <- class_name(classif) 
   
   
   idigbio$class <- classes # replace class column with new variable
