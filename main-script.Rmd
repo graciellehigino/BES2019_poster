@@ -76,6 +76,7 @@ ipak(packages_list <- c(
                        "rgbif",
                        "tidyr",
                        "parallel",
+                       "purrr",
                        "taxize",
                        "tidylog",
                        "vroom"
@@ -122,6 +123,8 @@ Biases and gaps on biodiversity data can have serious consequences on ecological
 # Results
 
 ```{r importing data, echo=FALSE, warning=FALSE,message=FALSE,results='hide'}
+c <- makeCluster(detectCores()-1)
+
 # Read CSV with urls for all data
 #devtools::install_github("tidyverse/googlesheets4")
 #datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
@@ -255,11 +258,7 @@ idigbio <- idigbio %>%
 
 #TODO  ## Split iDigBio into classes
 # Retrieving class from scientific name
-  #Getting scientific names
-  classes <- vector()  
-  
-  c <- makeCluster(detectCores()-1)
-  
+
   # Resolving sci. names
   # Data Sources IDs:
   # 173 = The Reptile Database
@@ -269,6 +268,12 @@ idigbio <- idigbio %>%
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
   
+  #TODO split names and glue together only the actual words
+  #redo grn_resolve and classification
+  
+  # idb_sp <- idigbio$species
+  # idb_sp <- strsplit(as.character(idb_sp), split="[*\\ \\d ]")
+  
   idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
@@ -276,7 +281,7 @@ idigbio <- idigbio %>%
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
  
-  sp.val <- vector()
+  sp.val <- vector(length = length(idb_spnames))
   for (i in 1:length(idb_spnames)){
     if (length(idb_spnames[i][[1]]>0)){
       sp.val[i] <- idb_spnames[[i]]$matched_name
@@ -289,18 +294,44 @@ idigbio <- idigbio %>%
 # TODO get classes of valid names
 # body working, but time consuming
   
-  # Getting classes of species
-  t <- parLapply(c, sp.val,
-          classification, db="gbif", rows=1)
+  !# Drop NA from sp.val before running classification
   
-  for (i in 1:end(sp)){
-    classes[i] <- filter(t[[i]][[1]], rank=="class")[,1]
+  # Getting classes of species
+  classif <- parLapply(c, sp.val,
+          classification, db="gbif", rows=1)
+   
+  classif <- flatten(classif)
+  #%>% map(~ split(.$name, .$rank)) %>% transpose %>% map(flatten_chr)
+  # # purrr::keep or discard()
+  # 
+  # purrr::flatten(head(classif)) %>% purrr::transpose(.)
+  # 
+  classes <- vector(length = length(classif))
+  for (i in 1:length(classif)){
+    if (is.na(names(classif[i]))){
+      classes[i] <- "NA"
+      } else {
+        if (is.na(classif[[i]])) {
+          classes[i] <- "NA"
+          } else {
+            if (length(filter(classif[[i]], rank=="class")$name)>0){
+              classes[i] <- filter(classif[[i]], rank=="class")$name
+              } else {
+                classes[i] <- "NA"
+              }
+          }
+      }
   }
   
   
   idigbio$class <- classes # replace class column with new variable
+  #levels(as.factor(idigbio$class))
+  idigbio <- idigbio[idigbio$class != c("Liliopsida", "FALSE", "NA"),]
+  idigbio$class[idigbio$class=="Insecta"] <- "Reptilia"
+  idigbio$class[idigbio$species=="Hylodes aspersa"] <- "Amphibia"
   
   idigbio_classes <- split(idigbio, idigbio$class) #split df into classes
+  
   
   #TODO merge each element of the previous list with its corresponding data
   
