@@ -135,7 +135,7 @@ if(file.exists("data/data.Rdata")){
   load("data/data.Rdata")
 } else {
 
-  gbif<-rgbif::occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw", overwrite = TRUE), quote = "")
+  gbif<-occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw", overwrite = TRUE), quote = "")
   
   # filenumbers <- 1:length(datasource$url)
   # filenames <- paste0("data/raw/file", filenumbers, ".zip")
@@ -313,14 +313,13 @@ idigbio <- idigbio %>%
   rm(ave, Aves, Amphibia, Mammalia, Reptilia)
 
   
-## GBIF
+# GBIF
 # gbif <-
-#   gbif %>% 
+#   gbif %>%
 #     rename(
 #       latitude = decimalLatitude,
-#       longitude = decimalLongitude
-#       class = dwc.class,
-#       species = dwc.scientificName
+#       longitude = decimalLongitude,
+#       species = scientificName
 #     ) %>%
 #     select(class, species, latitude, longitude) %>%
 #     group_by(species) %>%
@@ -330,7 +329,52 @@ idigbio <- idigbio %>%
 
 
 ```
+```{r geographic subset}
+# Get shapefile from here: https://c402277.ssl.cf1.rackcdn.com/publications/15/files/original/official_teow.zip?1349272619
 
+  ma<-readShapePoly("data/bioma.shp")
+  ma<-ma[ma$NOME=="Mata Atlântica",]
+
+  #Selecionar pontos que só caem dentro da MA
+
+  coordinates(dados) <- ~decimalLongitude+decimalLatitude
+  crs(dados) <- crs(ma)
+  
+  ovr <- over(dados, ma)
+  dados2 <- data.frame(as.data.frame(dados@coords), 
+                       as.data.frame(dados@data))
+  dados2 <- data.frame(MataAt=ovr$NOME, dados2)
+  dim(dados2)
+  dados2 <- dados2[!is.na(dados2[,'MataAt']),]
+  dim(dados2)
+
+
+###Conferindo quais pontos estão caindo no país errado.  
+```{r eval=FALSE, results=hide}
+coordinates(dados2) <- ~x+y
+data("wrld_simpl")
+crs(dados2) <- crs(wrld_simpl)
+class(dados2)
+objeto<-wrld_simpl[wrld_simpl$NAME=="Brazil",]
+ovr <- over(dados2, objeto)
+cntr <- ovr$NAME
+i <- which(is.na(cntr))
+i
+j <- which(cntr != dados2$country)
+cbind(cntr, dados2$country)[j,]
+if (length(j)==0) {rm(i,j,ovr,objeto,cntr)}
+```
+```{r standardizing species names}
+dados2$Species<-gsub(" ","_",dados2$Species)
+dados2<-dados2[dados2$Species %in% species2,]
+```
+```{r rasters}
+###Criar rasters
+```{r get_bioclim_data}
+xl <- range(dados2@coords) + c(-3, 3)
+yl <- range(dados2@coords) + c(-3, 3)
+r5 <- raster(xmn=min(xl),xmx=max(xl),ymn=min(yl),ymx=max(yl),resolution=5)
+```
 
 ##### page break
 
