@@ -256,9 +256,6 @@ idigbio <- idigbio %>%
     distinct(latitude, longitude, .keep_all = TRUE) %>%
     ungroup()
 
-#TODO  ## Split iDigBio into classes
-# Retrieving class from scientific name
-
   # Resolving sci. names
   # Data Sources IDs:
   # 173 = The Reptile Database
@@ -267,12 +264,6 @@ idigbio <- idigbio %>%
   # 11 = GBIF
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
-  
-  #TODO split names and glue together only the actual words
-  #redo grn_resolve and classification
-  
-  # idb_sp <- idigbio$species
-  # idb_sp <- strsplit(as.character(idb_sp), split="[*\\ \\d ]")
   
   idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
@@ -287,50 +278,31 @@ idigbio <- idigbio %>%
       sp.val[i] <- idb_spnames[[i]]$matched_name
     }
   }
-#NOTE 20191114 - saved idigbio, idb_spnames and sp.val in 'data/raw/idigbio.Rdata'. Load it next time.
-#
-#load("data/raw/idigbio.Rdata")
 
-# TODO get classes of valid names
-# body working, but time consuming
-  
-  !# Drop NA from sp.val before running classification
+  !# For the future: drop NA from sp.val before running classification
   
   # Getting classes of species
   classif <- parLapply(c, sp.val,
-          classification, db="gbif", rows=1)
-   
-  classif <- flatten(classif)
-  #%>% map(~ split(.$name, .$rank)) %>% transpose %>% map(flatten_chr)
-  # # purrr::keep or discard()
-  # 
-  # purrr::flatten(head(classif)) %>% purrr::transpose(.)
-  # 
-  classes <- vector(length = length(classif))
-  for (i in 1:length(classif)){
-    if (is.na(names(classif[i]))){
-      classes[i] <- "NA"
-      } else {
-        if (is.na(classif[[i]])) {
-          classes[i] <- "NA"
-          } else {
-            if (length(filter(classif[[i]], rank=="class")$name)>0){
-              classes[i] <- filter(classif[[i]], rank=="class")$name
-              } else {
-                classes[i] <- "NA"
-              }
-          }
-      }
+          classification, db="gbif", rows=1) 
+  
+  classes = as.data.frame(matrix(NA, length(classif),1))
+  names(classes) = "Class"
+  for (i in 1:length(classif)) {
+    if(!is.na(names(classif[[i]])) & !is.na(classif[[i]])) {
+      class = unname(classif[[i]])[[1]] %>% filter(rank == "class")
+       if(nrow(class) != 0) {
+         classes[i,] = class %>% select("name")
+       }
+    }
   }
   
   
-  idigbio$class <- classes # replace class column with new variable
-  #levels(as.factor(idigbio$class))
-  idigbio <- idigbio[idigbio$class != c("Liliopsida", "FALSE", "NA"),]
-  idigbio$class[idigbio$class=="Insecta"] <- "Reptilia"
-  idigbio$class[idigbio$species=="Hylodes aspersa"] <- "Amphibia"
+  idigbio$class <- classes$Class # replace class column with new variable
+  #levels(idigbio$class)
+  idigbio <- filter(idigbio, class %in% c("Aves", "Amphibia", "Mammalia", "Reptilia")) # Exclude occurrences due to misclassification and invalid names
   
-  idigbio_classes <- split(idigbio, idigbio$class) #split df into classes
+  idigbio_classes <- split(idigbio, idigbio$class)
+  list2env(idigbio_classes, .GlobalEnv) #split df into classes
   
   
   #TODO merge each element of the previous list with its corresponding data
