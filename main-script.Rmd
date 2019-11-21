@@ -314,19 +314,29 @@ idigbio <- idigbio %>%
 
   
 # GBIF
-# gbif <-
-#   gbif %>%
-#     rename(
-#       latitude = decimalLatitude,
-#       longitude = decimalLongitude,
-#       species = scientificName
-#     ) %>%
-#     select(class, species, latitude, longitude) %>%
-#     group_by(species) %>%
-#     distinct(latitude, longitude, .keep_all = TRUE) %>%
-#     ungroup()
-# 
+gbif <-
+  gbif %>%
+    rename(
+      latitude = decimalLatitude,
+      longitude = decimalLongitude,
+      sp = scientificName
+    ) %>%
+    select(class, sp, latitude, longitude) %>%
+    drop_na() %>% 
+    group_by(sp) %>%
+    distinct(latitude, longitude, .keep_all = TRUE) %>%
+    ungroup()
+rename(gbif, species = sp)
 
+gbif_classes <- split(gbif, gbif$class)
+list2env(gbif_classes, .GlobalEnv)
+
+
+  aves <- rbind(aves, Aves[2:4])
+  amp <- rbind(amp, Amphibia[2:4])
+  mam <- rbind(mam, Mammalia[2:4])
+  rep <- rbind(rep, Reptilia[2:4])
+  rm(Aves, Amphibia, Mammalia, Reptilia)
 
 ```
 ```{r geographic subset}
