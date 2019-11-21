@@ -65,19 +65,30 @@ ipak(packages_list <- c(
                        "captioner", # required; do not exclude from this list
                        "git2r",     # required; do not exclude from this list
                        "googlesheets4",
+                       "biogeo",    # optional; check again after geographic processing
                        "CoordinateCleaner",
                        "curl",
+                       "dismo",
                        "dplyr",
                        "doParallel",
                        "fs",
                        "future",
                        "furrr",
                        "here",
+                       "mapdata",
+                       "maps",
+                       #"maptools",
                        "rgbif",
+                       "rgeos",
                        "tidyr",
                        "parallel",
                        "purrr",
+                       "raster",
+                       "rgdal",
+                       "sp",
+                       "sqldf",
                        "taxize",
+                       "tm",
                        "tidylog",
                        "vroom"
                        )
@@ -305,7 +316,6 @@ idigbio <- idigbio %>%
   list2env(idigbio_classes, .GlobalEnv) #split df into classes
   
   
-  #TODO merge each element of the previous list with its corresponding data
   aves <- rbind(ave, Aves[2:4])
   amp <- rbind(amp, Amphibia[2:4])
   mam <- rbind(mam, Mammalia[2:4])
@@ -341,43 +351,53 @@ list2env(gbif_classes, .GlobalEnv)
 ```
 ```{r geographic subset}
 # Get shapefile from here: https://c402277.ssl.cf1.rackcdn.com/publications/15/files/original/official_teow.zip?1349272619
+# unzip(curl::curl_download("https://c402277.ssl.cf1.rackcdn.com/publications/15/files/original/official_teow.zip?1349272619", destfile = "data/raw/ecoregion.zip"), exdir = "data/raw")
 
-  ma<-readShapePoly("data/bioma.shp")
-  ma<-ma[ma$NOME=="Mata Atlântica",]
-
-  #Selecionar pontos que só caem dentro da MA
-
-  coordinates(dados) <- ~decimalLongitude+decimalLatitude
-  crs(dados) <- crs(ma)
+  ma<-readOGR("data/raw/official/wwf_terr_ecos.shp")
+  ma<-ma[ma$G200_REGIO %in% c("Atlantic Forests", "Atlantic dry Forests"),]
   
-  ovr <- over(dados, ma)
-  dados2 <- data.frame(as.data.frame(dados@coords), 
-                       as.data.frame(dados@data))
-  dados2 <- data.frame(MataAt=ovr$NOME, dados2)
-  dim(dados2)
-  dados2 <- dados2[!is.na(dados2[,'MataAt']),]
-  dim(dados2)
 
+# Subset occurrences that are inside ma shp
 
-###Conferindo quais pontos estão caindo no país errado.  
-```{r eval=FALSE, results=hide}
-coordinates(dados2) <- ~x+y
-data("wrld_simpl")
-crs(dados2) <- crs(wrld_simpl)
-class(dados2)
-objeto<-wrld_simpl[wrld_simpl$NAME=="Brazil",]
-ovr <- over(dados2, objeto)
-cntr <- ovr$NAME
-i <- which(is.na(cntr))
-i
-j <- which(cntr != dados2$country)
-cbind(cntr, dados2$country)[j,]
-if (length(j)==0) {rm(i,j,ovr,objeto,cntr)}
+  ## check for NAs and drop them
+  amp <- na.exclude(amp)
+  aves <- na.exclude(aves)
+  mam <- na.exclude(mam)
+  rep <- na.exclude(rep)
+  
+  ## Set coordinates
+  
+  groups <- list(amp, aves, mam, rep)
+  names(groups) <- c("amp", "aves", "mam", "rep")
+  rm(amp, aves, mam, rep)
+  for (i in groups) {
+    coordinates(i) <- ~latitude+longitude
+    crs(i) <- crs(ma)
+    i <- i[ma,]
+  }
+  list2env(groups, .GlobalEnv)
+  rm(groups)
 ```
-```{r standardizing species names}
-dados2$Species<-gsub(" ","_",dados2$Species)
+```{r final sp names checking}
+c <- makeCluster(detectCores()-1)
+spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
+                         data_source_ids=c(173,3,4,11,174,175),
+                         resolve_once=FALSE,
+                         with_context=FALSE,canonical=FALSE,highestscore=TRUE,
+                         best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
+                         fields = "minimal")
+ 
+  sp.val <- vector(length = length(idb_spnames))
+  for (i in 1:length(idb_spnames)){
+    if (length(idb_spnames[i][[1]]>0)){
+      sp.val[i] <- idb_spnames[[i]]$matched_name
+    }
+  }
+
+teste <- amp$species<-gsub(" ","_",amp$species)
 dados2<-dados2[dados2$Species %in% species2,]
 ```
+
 ```{r rasters}
 ###Criar rasters
 ```{r get_bioclim_data}
