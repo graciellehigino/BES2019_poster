@@ -335,7 +335,7 @@ list2env(gbif_classes, .GlobalEnv)
   aves <- rbind(aves, Aves[2:4])
   amp <- rbind(amp, Amphibia[2:4])
   mam <- rbind(mam, Mammalia[2:4])
-  rep <- rbind(rep, Reptilia[2:4])
+  rep <- rbind(rep[2:4], Reptilia[2:4])
   rm(Aves, Amphibia, Mammalia, Reptilia)
 
 ```
