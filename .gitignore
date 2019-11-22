@@ -44,3 +44,7 @@ rsconnect/
 /_MACOSX
 *.txt
 *.xml
+/wc0.5
+/official
+/ai_et0
+*.tiff

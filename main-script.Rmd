@@ -463,9 +463,32 @@ unzip("data/raw/pet.zip", exdir = "data/raw")
 pet <- raster("data/raw/ai_et0/ai_et0.tif")
 pet <- crop(pet, extent(ma))
 
-temper <- getData(name = 'worldclim', var='bio', lat=mean(ymin(ma), ymax(ma)), lon=mean(xmin(ma),xmax(ma)), res=0.5, path = "data/raw")[[1]]
-topog <-  getData(name = 'alt', country="Brazil", download = TRUE, path = "data/raw",mask=FALSE) 
+## Temperature - WorldClim (bioclim 01)
+download.file("http://biogeo.ucdavis.edu/data/worldclim/v2.0/tif/base/wc2.0_30s_bio.zip", mode="wb", destfile = "data/raw/temp.zip")
+unzip("data/raw/temp.zip", exdir="data/raw")
+temper <- raster("data/raw/whatever.bil")[[1]]
+temper <- crop(temper, extente(ma))
 
+## Topography - WorldClim
+topog <-  getData(name = 'alt', country="Brazil", download = TRUE, path = "data/raw",mask=FALSE)
+topog <- crop(topog, extent(ma))
+
+
+# Set equal resolutions and extentions
+
+# Get values for each cell and build df of environmental variable
+## Get cells from raster
+cells<-cellFromXY(temper, rasterize(ma, temper))
+
+## Get variables from raster 
+temp.p<-extract(temp,@coords,"simple")
+alt.p<-extract(alt,data5@coords,"simple")
+ndvi.p<-extract(ndvi,data5@coords,"simple")
+pet.p<-extract(pet,data5@coords,"simple")
+## Build df of variables
+
+# Save
+save()
 
 ```
 ```{r get_bioclim_data}
