@@ -212,9 +212,6 @@ if(file.exists("data/data.Rdata")){
   # unzip("data/raw/idigbio.zip", exdir = "data/raw")
   idigbio <- read.csv("data/raw/occurrence_raw.csv")
 
-  # Save everything
-  save(gbif, amp_dp, bat_dp, mamsmall_dp, mamsmall2_dp, mamct_dp, mamprim_dp, birds_dp, idigbio, file ="data/raw/occ_data.Rdata")
-
 }
 ```
 ```{r subseting datasets}
@@ -368,12 +365,12 @@ list2env(gbif_classes, .GlobalEnv)
   ## Set coordinates
   
   groups <- list(amp, aves, mam, rep)
-  names(groups) <- c("amp", "aves", "mam", "rep")
   rm(amp, aves, mam, rep)
-  for (i in groups) {
-    coordinates(i) <- ~latitude+longitude
-    crs(i) <- crs(ma)
-    i <- i[ma,]
+  names(groups) <- c("amp", "aves", "mam", "rep")
+  for (i in 1:4) {
+    coordinates(groups[[i]]) <- ~longitude+latitude
+    crs(groups[[i]]) <- crs(ma)
+    groups[[i]] <- groups[[i]][ma,]
   }
   list2env(groups, .GlobalEnv)
   rm(groups)
@@ -449,13 +446,28 @@ rep.spnames<-parLapply(c, as.character(rep$species), gnr_resolve,
   }
   rep <- rep[rep$species %in% rep.spnames.val,]
   rm(rep.spnames,rep.spnames.val)
-  
-save(amp, aves, mam, rep, file="data/clean/species.Rdata")
 
 ```
 
-```{r rasters}
-###Criar rasters
+```{r env rasters}
+# Download data
+## NDVI - 
+download.file("https://neo.sci.gsfc.nasa.gov/servlet/RenderData?si=1780053&cs=gs&format=TIFF&width=3600&height=1800", mode="wb", destfile = "data/raw/ndvi.tiff")
+ndvi <- raster("data/raw/ndvi.tiff")
+ndvi <- crop(ndvi, extent(ma))
+
+## PET -  Trabucco, Antonio; Zomer, Robert (2019): Global Aridity Index and Potential Evapotranspiration (ET0) Climate Database v2. figshare. Fileset. https://doi.org/10.6084/m9.figshare.7504448.v3
+ 
+download.file("https://ndownloader.figshare.com/files/14118800", mode ="wb",destfile = "data/raw/pet.zip")
+unzip("data/raw/pet.zip", exdir = "data/raw")
+pet <- raster("data/raw/ai_et0/ai_et0.tif")
+pet <- crop(pet, extent(ma))
+
+temper <- getData(name = 'worldclim', var='bio', lat=mean(ymin(ma), ymax(ma)), lon=mean(xmin(ma),xmax(ma)), res=0.5, path = "data/raw")[[1]]
+topog <-  getData(name = 'alt', country="Brazil", download = TRUE, path = "data/raw",mask=FALSE) 
+
+
+```
 ```{r get_bioclim_data}
 xl <- range(dados2@coords) + c(-3, 3)
 yl <- range(dados2@coords) + c(-3, 3)
