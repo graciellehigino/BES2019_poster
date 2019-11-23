@@ -365,12 +365,15 @@ list2env(gbif_classes, .GlobalEnv)
   ## Set coordinates
   
   groups <- list(amp, aves, mam, rep)
+  ovr <- list(length(groups))
   rm(amp, aves, mam, rep)
   names(groups) <- c("amp", "aves", "mam", "rep")
   for (i in 1:4) {
     coordinates(groups[[i]]) <- ~longitude+latitude
     crs(groups[[i]]) <- crs(ma)
-    groups[[i]] <- groups[[i]][ma,]
+    ovr[[i]] <- over(groups[[i]],ma)
+    groups[[i]] <- cbind(groups[[i]]@coords, groups[[i]]@data, ovr[[i]])
+    groups[[i]] <- groups[[i]][!is.na(groups[[i]]$G200_REGIO),]
   }
   list2env(groups, .GlobalEnv)
   rm(groups)
@@ -379,13 +382,16 @@ list2env(gbif_classes, .GlobalEnv)
 c <- makeCluster(detectCores()-1)
 
 # Amphibia
+
 amp.spnames<-parLapply(c, as.character(amp$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
- 
+
+
+
   amp.spnames.val <- vector(length = length(amp.spnames))
   for (i in 1:length(amp.spnames)){
     if (length(amp.spnames[i][[1]]>0)){
@@ -402,7 +408,7 @@ aves.spnames<-parLapply(c, as.character(aves$species), gnr_resolve,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
- 
+
   aves.spnames.val <- vector(length = length(aves.spnames))
   for (i in 1:length(aves.spnames)){
     if (length(aves.spnames[i][[1]]>0)){
@@ -420,7 +426,7 @@ mam.spnames<-parLapply(c, as.character(mam$species), gnr_resolve,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
- 
+
   mam.spnames.val <- vector(length = length(mam.spnames))
   for (i in 1:length(mam.spnames)){
     if (length(mam.spnames[i][[1]]>0)){
@@ -437,7 +443,7 @@ rep.spnames<-parLapply(c, as.character(rep$species), gnr_resolve,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
- 
+
   rep.spnames.val <- vector(length = length(rep.spnames))
   for (i in 1:length(rep.spnames)){
     if (length(rep.spnames[i][[1]]>0)){
@@ -464,10 +470,13 @@ pet <- raster("data/raw/ai_et0/ai_et0.tif")
 pet <- crop(pet, extent(ma))
 
 ## Temperature - WorldClim (bioclim 01)
-download.file("http://biogeo.ucdavis.edu/data/worldclim/v2.0/tif/base/wc2.0_30s_bio.zip", mode="wb", destfile = "data/raw/temp.zip")
-unzip("data/raw/temp.zip", exdir="data/raw")
-temper <- raster("data/raw/whatever.bil")[[1]]
-temper <- crop(temper, extente(ma))
+temper1 <- getData(name = 'worldclim', var='bio', download = TRUE, path = "data/raw",
+                   lat = -25, lon = -60, res=0.5)[[1]]
+temper2 <- getData(name = 'worldclim', var='bio', download = TRUE, path = "data/raw",
+                   lat = -60, lon = -60, res=0.5)[[1]]
+temper <- mosaic(temper1, temper2, fun=mean)
+rm(temper1, temper2)
+temper <- crop(temper, extent(ma))
 
 ## Topography - WorldClim
 topog <-  getData(name = 'alt', country="Brazil", download = TRUE, path = "data/raw",mask=FALSE)
@@ -475,17 +484,21 @@ topog <- crop(topog, extent(ma))
 
 
 # Set equal resolutions and extentions
+ndvi <- disaggregate(ndvi, fact=12)
 
 # Get values for each cell and build df of environmental variable
-## Get cells from raster
-cells<-cellFromXY(temper, rasterize(ma, temper))
+
+cells<-cellFromPolygon(pet, ma) # Get Atlantic Forest cells from raster
+ind <- xyFromCell(pet, cells) # Get xy from cells
 
 ## Get variables from raster 
-temp.p<-extract(temp,@coords,"simple")
-alt.p<-extract(alt,data5@coords,"simple")
-ndvi.p<-extract(ndvi,data5@coords,"simple")
-pet.p<-extract(pet,data5@coords,"simple")
+temp.p<-raster::extract(temper,ind,"simple")
+topog.p<-raster::extract(topog,ind,"simple")
+ndvi.p<-raster::extract(ndvi,ind,"simple")
+pet.p<-raster::extract(pet,ind,"simple")
+
 ## Build df of variables
+amp.df <- as.data.frame(amp@data, amp@coords)
 
 # Save
 save()

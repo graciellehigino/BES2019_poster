@@ -3,6 +3,7 @@
 .Rapp.history
 
 # Session Data files
+*.Rdata
 
 # Example code in package build process
 *-Ex.R
@@ -48,3 +49,6 @@ rsconnect/
 /official
 /ai_et0
 *.tiff
+*.grd
+*.gri
+*.vrt
