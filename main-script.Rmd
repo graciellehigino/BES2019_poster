@@ -77,7 +77,7 @@ ipak(packages_list <- c(
                        "here",
                        "mapdata",
                        "maps",
-                       #"maptools",
+                       "maptools",
                        "rgbif",
                        "rgeos",
                        "tidyr",
@@ -400,7 +400,7 @@ amp.spnames<-parLapply(c, as.character(amp$species), gnr_resolve,
   }
   amp <- amp[amp$species %in% amp.spnames.val,]
   rm(amp.spnames, amp.spnames.val)
-
+  
 # Aves
 aves.spnames<-parLapply(c, as.character(aves$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
@@ -488,18 +488,24 @@ ndvi <- disaggregate(ndvi, fact=12)
 
 # Get values for each cell and build df of environmental variable
 
-cells<-cellFromPolygon(pet, ma) # Get Atlantic Forest cells from raster
-ind <- xyFromCell(pet, cells) # Get xy from cells
+ind <- rbind(amp[1:2], aves[1:2], mam[1:2], rep[1:2])
+cells<-cellFromXY(pet, ind) # Get Atlantic Forest cells from raster
 
 ## Get variables from raster 
-temp.p<-raster::extract(temper,ind,"simple")
-topog.p<-raster::extract(topog,ind,"simple")
-ndvi.p<-raster::extract(ndvi,ind,"simple")
-pet.p<-raster::extract(pet,ind,"simple")
+temp.p<-raster::extract(temper,ind, "simple")
+topog.p<-raster::extract(topog,ind, "simple")
+ndvi.p<-raster::extract(ndvi, ind, "simple")
+pet.p<-raster::extract(pet, ind,"simple")
 
 ## Build df of variables
-amp.df <- as.data.frame(amp@data, amp@coords)
+### Environmental variables
+env <- cbind(cells, ind, temp.p, topog.p, ndvi.p, pet.p)
 
+### Occurrences
+occ <- 
+
+
+### Everything together
 # Save
 save()
 
