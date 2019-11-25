@@ -460,7 +460,10 @@ rep.spnames<-parLapply(c, as.character(rep$species), gnr_resolve,
 ## NDVI - 
 download.file("https://neo.sci.gsfc.nasa.gov/servlet/RenderData?si=1780053&cs=gs&format=TIFF&width=3600&height=1800", mode="wb", destfile = "data/raw/ndvi.tiff")
 ndvi <- raster("data/raw/ndvi.tiff")
-ndvi <- crop(ndvi, extent(ma))
+  # Set equal resolutions and extentions
+  ndvi <- disaggregate(ndvi, fact=12)
+  # Crop
+  ndvi <- crop(ndvi, extent(ma))
 
 ## PET -  Trabucco, Antonio; Zomer, Robert (2019): Global Aridity Index and Potential Evapotranspiration (ET0) Climate Database v2. figshare. Fileset. https://doi.org/10.6084/m9.figshare.7504448.v3
  
@@ -483,13 +486,11 @@ topog <-  getData(name = 'alt', country="Brazil", download = TRUE, path = "data/
 topog <- crop(topog, extent(ma))
 
 
-# Set equal resolutions and extentions
-ndvi <- disaggregate(ndvi, fact=12)
 
 # Get values for each cell and build df of environmental variable
 
 ind <- rbind(amp[1:2], aves[1:2], mam[1:2], rep[1:2])
-cells<-cellFromXY(pet, ind) # Get Atlantic Forest cells from raster
+cells<-cellFromXY(pet, ind) # Get occurrence cells from raster
 
 ## Get variables from raster 
 temp.p<-raster::extract(temper,ind, "simple")
@@ -497,24 +498,32 @@ topog.p<-raster::extract(topog,ind, "simple")
 ndvi.p<-raster::extract(ndvi, ind, "simple")
 pet.p<-raster::extract(pet, ind,"simple")
 
-## Build df of variables
-### Environmental variables
+## Build dfs
+### environmental variables
 env <- cbind(cells, ind, temp.p, topog.p, ndvi.p, pet.p)
+colnames(env) <- c("cells", "longitude", "latitude", "temperature", "topography", "ndvi", "pet")
 
-### Occurrences
-occ <- 
-
-
-### Everything together
-# Save
-save()
-
+### occurrences
+occ <- bind_rows("amp" = amp[1:3], "rep" = rep[1:3], .id="class")
 ```
-```{r get_bioclim_data}
-xl <- range(dados2@coords) + c(-3, 3)
-yl <- range(dados2@coords) + c(-3, 3)
-r5 <- raster(xmn=min(xl),xmx=max(xl),ymn=min(yl),ymx=max(yl),resolution=5)
+```{r species richness for AR}
+# Slope of the species accumulation curve
+data6$abundance<-1
+data6$abundance<-as.integer(data6$abundance)
+tt<-sqldf("select cells, count(Species) as N_rec from data6 group by cells having count(Species) > 0")
+df7<-merge(x=data6, y=tt, by="cells", all.y=TRUE)
+df7<-df7[df7$cells, c("ID", "Species", "abundance")] 
+mat1<-data2mat(df7) 
+total.slope<-specslope(x<-specaccum(mat1,method="exact"),(ceiling(length(x)-length(x)*0.9)))
+plot(x,add=FALSE,random=FALSE,ci=2,ci.type="polygon",col=par("fg"),ci.col="grey",xlim=c(1,170),
+ci.lty=1,ylab="exact",xvar="sites")
+text(round(total.slope,digits=3), x=160, y=50,pos=3)
+text("Slope = ", x=143, y=50,pos=3)
+
+# Species richness by cell
+sr<-sqldf("select cells, count (distinct(Species)) as sr_total from data6 group by cells")
 ```
+
 
 ##### page break
 
