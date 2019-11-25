@@ -90,6 +90,7 @@ ipak(packages_list <- c(
                        "taxize",
                        "tm",
                        "tidylog",
+                       "vegan",
                        "vroom"
                        )
      )
@@ -147,10 +148,10 @@ if(file.exists("data/data.Rdata")){
 } else {
 
   gbif<-occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw", overwrite = TRUE), quote = "")
-  
+
   # filenumbers <- 1:length(datasource$url)
   # filenames <- paste0("data/raw/file", filenumbers, ".zip")
-  # 
+  #
   # for (i in 1:length(datasource$url)){
   #     files <-  list(download.file(datasource$url[i], filenames[i]))
   #     unzip(filenames[i], exdir = "/data/raw")
@@ -160,7 +161,7 @@ if(file.exists("data/data.Rdata")){
   ## Amphibia - Datapapers
   amp_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_AMPHIBIANS_sites.csv"),
                   read.csv("data/raw/ATLANTIC_AMPHIBIANS_species.csv"), by = "id")
-  
+
   ## Mammals
   # Bats
   bat_capture <- read.csv("data/raw/ATLANTIC_BATS_Capture.csv") # read data with species names
@@ -168,45 +169,45 @@ if(file.exists("data/data.Rdata")){
   cols <-  cols[[1]][! cols[[1]] %in% ""]
   bat_capture <- tidyr::separate(bat_capture, 1, cols, sep = "[,]", remove = TRUE) # separate data in proper columns
   bat_sites <-  read.csv("data/raw/ATLANTIC_BATS_Study_site.csv") # read data with coordinates
-  
+
   bat_dp <- dplyr::inner_join(bat_capture, bat_sites, by = "ID") # merge
-  
+
   rm(cols, bat_capture, bat_sites)
-  
+
   # Small Mammals
   mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
                   read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
-  
+
   # Camtraps Mammals
   loc <- read.csv("data/raw/ATLANTIC_CAMTRAPS_1-0_LOCATION.csv")
   survey <- read.csv("data/raw/ATLANTIC_CAMTRAPS_1-0_SURVEY.csv")
   records <- read.csv("data/raw/ATLANTIC_CAMTRAPS_1-0_RECORDS.csv")
   sp <- read.csv("data/raw/ATLANTIC_CAMTRAPS_1-0_SPECIES.csv")
-  
+
   mamct_dp <- dplyr::inner_join(loc, survey, by = "location_id")
   mamct_dp <- dplyr::inner_join(mamct_dp, records, by = "survey_id")
   mamct_dp <- dplyr::inner_join(mamct_dp, sp, by = "species_id")
-  
+
   rm(loc, survey, records, sp)
-  
+
   # Primates
   mamprim_dp <-  read.csv("data/raw/Dataset/ATLANTIC-PR_Occurrence.csv", sep = ";")
-  
+
   # Small mammals
   sites <- read.csv("data/raw/Mammals_UPRB_study_sites.csv")
   sp <- readr::read_csv("data/raw/Mammals_UPRB_species.csv")
   sp <- tidyr::pivot_longer(sp, dplyr::contains("ite_"), names_to = "site", values_to = "abundance", names_prefix = "site_")
   sp <- sp[sp$abundance != 0,]
   mamsmall2_dp <- dplyr::inner_join(sites, sp, by = "site")
-  
+
   rm(sites,sp)
-  
-  
+
+
   ## Birds
   birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
-  
+
   # Data Dryad - for future us
-  
+
   ## iDigBio
   # download.file("http://s.idigbio.org/idigbio-downloads/48532368-4e8e-4166-90f9-a4ee28002a4b.zip", "data/raw/idigbio.zip")
   # unzip("data/raw/idigbio.zip", exdir = "data/raw")
@@ -251,7 +252,7 @@ for (i in 1:5) {
 mam <- bind_rows(mam)
 
 ## iDigBio
-idigbio <- idigbio %>% 
+idigbio <- idigbio %>%
     rename(
       latitude = dwc.decimalLatitude,
       longitude = dwc.decimalLongitude,
@@ -259,7 +260,7 @@ idigbio <- idigbio %>%
       species = dwc.scientificName
     ) %>%
     select(class, species, latitude, longitude) %>%
-    drop_na() %>% 
+    drop_na() %>%
     group_by(species) %>%
     distinct(latitude, longitude, .keep_all = TRUE) %>%
     ungroup()
@@ -272,14 +273,14 @@ idigbio <- idigbio %>%
   # 11 = GBIF
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
-  
+
   idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
                          best_match_only=TRUE,http="post",splitby=50,cap_first=TRUE,
                          fields = "minimal")
- 
+
   sp.val <- vector(length = length(idb_spnames))
   for (i in 1:length(idb_spnames)){
     if (length(idb_spnames[i][[1]]>0)){
@@ -288,11 +289,11 @@ idigbio <- idigbio %>%
   }
 
   !# For the future: drop NA from sp.val before running classification
-  
+
   # Getting classes of species
   classif <- parLapply(c, sp.val,
-          classification, db="gbif", rows=1) 
-  
+          classification, db="gbif", rows=1)
+
   classes = as.data.frame(matrix(NA, length(classif),1))
   names(classes) = "Class"
   for (i in 1:length(classif)) {
@@ -303,23 +304,23 @@ idigbio <- idigbio %>%
        }
     }
   }
-  
-  
+
+
   idigbio$class <- classes$Class # replace class column with new variable
   #levels(idigbio$class)
   idigbio <- filter(idigbio, class %in% c("Aves", "Amphibia", "Mammalia", "Reptilia")) # Exclude occurrences due to misclassification and invalid names
-  
+
   idigbio_classes <- split(idigbio, idigbio$class)
   list2env(idigbio_classes, .GlobalEnv) #split df into classes
-  
-  
+
+
   aves <- rbind(ave, Aves[2:4])
   amp <- rbind(amp, Amphibia[2:4])
   mam <- rbind(mam, Mammalia[2:4])
   rep <- Reptilia
   rm(ave, Aves, Amphibia, Mammalia, Reptilia)
 
-  
+
 # GBIF
 gbif <-
   gbif %>%
@@ -329,7 +330,7 @@ gbif <-
       sp = scientificName
     ) %>%
     select(class, sp, latitude, longitude) %>%
-    drop_na() %>% 
+    drop_na() %>%
     group_by(sp) %>%
     distinct(latitude, longitude, .keep_all = TRUE) %>%
     ungroup()
@@ -352,7 +353,7 @@ list2env(gbif_classes, .GlobalEnv)
 
   ma<-readOGR("data/raw/official/wwf_terr_ecos.shp")
   ma<-ma[ma$G200_REGIO %in% c("Atlantic Forests", "Atlantic dry Forests"),]
-  
+
 
 # Subset occurrences that are inside ma shp
 
@@ -361,9 +362,9 @@ list2env(gbif_classes, .GlobalEnv)
   aves <- na.exclude(aves)
   mam <- na.exclude(mam)
   rep <- na.exclude(rep)
-  
+
   ## Set coordinates
-  
+
   groups <- list(amp, aves, mam, rep)
   ovr <- list(length(groups))
   rm(amp, aves, mam, rep)
@@ -400,7 +401,7 @@ amp.spnames<-parLapply(c, as.character(amp$species), gnr_resolve,
   }
   amp <- amp[amp$species %in% amp.spnames.val,]
   rm(amp.spnames, amp.spnames.val)
-  
+
 # Aves
 aves.spnames<-parLapply(c, as.character(aves$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
@@ -417,8 +418,8 @@ aves.spnames<-parLapply(c, as.character(aves$species), gnr_resolve,
   }
   aves <- aves[aves$species %in% aves.spnames.val,]
   rm(aves.spnames, aves.spnames.val)
-  
-  
+
+
 # Mammalia
 mam.spnames<-parLapply(c, as.character(mam$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
@@ -435,7 +436,7 @@ mam.spnames<-parLapply(c, as.character(mam$species), gnr_resolve,
   }
   mam <- mam[mam$species %in% mam.spnames.val,]
   rm(mam.spnames, mam.spnames.val)
-  
+
 # Reptilia
 rep.spnames<-parLapply(c, as.character(rep$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
@@ -457,7 +458,7 @@ rep.spnames<-parLapply(c, as.character(rep$species), gnr_resolve,
 
 ```{r env rasters}
 # Download data
-## NDVI - 
+## NDVI -
 download.file("https://neo.sci.gsfc.nasa.gov/servlet/RenderData?si=1780053&cs=gs&format=TIFF&width=3600&height=1800", mode="wb", destfile = "data/raw/ndvi.tiff")
 ndvi <- raster("data/raw/ndvi.tiff")
   # Set equal resolutions and extentions
@@ -466,7 +467,7 @@ ndvi <- raster("data/raw/ndvi.tiff")
   ndvi <- crop(ndvi, extent(ma))
 
 ## PET -  Trabucco, Antonio; Zomer, Robert (2019): Global Aridity Index and Potential Evapotranspiration (ET0) Climate Database v2. figshare. Fileset. https://doi.org/10.6084/m9.figshare.7504448.v3
- 
+
 download.file("https://ndownloader.figshare.com/files/14118800", mode ="wb",destfile = "data/raw/pet.zip")
 unzip("data/raw/pet.zip", exdir = "data/raw")
 pet <- raster("data/raw/ai_et0/ai_et0.tif")
@@ -492,7 +493,7 @@ topog <- crop(topog, extent(ma))
 ind <- rbind(amp[1:2], aves[1:2], mam[1:2], rep[1:2])
 cells<-cellFromXY(pet, ind) # Get occurrence cells from raster
 
-## Get variables from raster 
+## Get variables from raster
 temp.p<-raster::extract(temper,ind, "simple")
 topog.p<-raster::extract(topog,ind, "simple")
 ndvi.p<-raster::extract(ndvi, ind, "simple")
@@ -508,20 +509,26 @@ occ <- bind_rows("amp" = amp[1:3], "rep" = rep[1:3], .id="class")
 ```
 ```{r species richness for AR}
 # Slope of the species accumulation curve
-data6$abundance<-1
-data6$abundance<-as.integer(data6$abundance)
-tt<-sqldf("select cells, count(Species) as N_rec from data6 group by cells having count(Species) > 0")
-df7<-merge(x=data6, y=tt, by="cells", all.y=TRUE)
-df7<-df7[df7$cells, c("ID", "Species", "abundance")] 
-mat1<-data2mat(df7) 
-total.slope<-specslope(x<-specaccum(mat1,method="exact"),(ceiling(length(x)-length(x)*0.9)))
-plot(x,add=FALSE,random=FALSE,ci=2,ci.type="polygon",col=par("fg"),ci.col="grey",xlim=c(1,170),
+occ$abundance<-1
+occ$abundance<-as.integer(occ$abundance)
+occ$cells <- cells
+tt<-sqldf("select cells, count(species) as N_rec from occ group by cells having count(species) > 0")
+df<-merge(x=occ, y=tt, by="cells", all.y=TRUE)
+df<-df[, c(1, 4, 6)]
+mat<-spaa::data2mat(df)
+
+# From Stropp et al.:
+  spaccum <- specaccum(mat, method = "exact")  
+  total.slope <- (spaccum[[4]][length(spaccum[[4]])]-spaccum[[4]][ceiling(length(spaccum[[4]])*0.9)])/(length(spaccum[[4]])-ceiling(length(spaccum[[4]])*0.9))
+  save(spaccum, total.slope, file="BES2019_poster/output/results/total_accum.Rdata")
+
+plot(spaccum,add=FALSE,random=FALSE,ci=2,ci.type="polygon",col=par("fg"),ci.col="grey",xlim=c(1,170),
 ci.lty=1,ylab="exact",xvar="sites")
 text(round(total.slope,digits=3), x=160, y=50,pos=3)
 text("Slope = ", x=143, y=50,pos=3)
 
 # Species richness by cell
-sr<-sqldf("select cells, count (distinct(Species)) as sr_total from data6 group by cells")
+sr<-sqldf("select cells, count (distinct(species)) as sr_total from occ group by cells")
 ```
 
 
