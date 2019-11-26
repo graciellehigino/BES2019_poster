@@ -529,6 +529,16 @@ text("Slope = ", x=143, y=50,pos=3)
 
 # Species richness by cell
 sr<-sqldf("select cells, count (distinct(species)) as sr_total from occ group by cells")
+
+
+## Rarefaction analyses
+# New dataset
+tot<-merge(tt,sr, by="cells", all=TRUE)
+# Expected total richness
+exp.sr<-rarefy(tot$sr_total,tot$N_rec)
+exp.sr<-as.list(exp.sr)
+# Slope of the rarecurve for each cell
+slope.sr<-rareslope(tot$sr_total,tot$N_rec)
 ```
 
 
