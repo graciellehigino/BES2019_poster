@@ -67,14 +67,17 @@ cor.test(a[,2],a[,7],method="pearson")
 cor.test(a[,2],a[,8],method="pearson")
 
 ## Only well-sampled cells
-# Aves
-wsu.aves<-subset(data8[[4]],data8[[4]][,3]<=0.05)
-cor.wsu.aves<-list(
-  wsu.aves.temp<-cor.test(wsu.aves[,3],wsu.aves[,4]),
-  wsu.aves.alt<-cor.test(wsu.aves[,3],wsu.aves[,5]),
-  wsu.aves.ndvi<-cor.test(wsu.aves[,3],wsu.aves[,6]),
-  wsu.aves.pet<-cor.test(wsu.aves[,3],wsu.aves[,7])
-)
+wsu_cor<-matrix(nrow=4, ncol=4)
+for (i in 1:nrow(wsu_cor)){
+for (j in 1:ncol(wsu_cor)){
+	x<-filter(r.classes[[i]],r.classes[[i]][,7]<0.05)
+	if (nrow(x)>2){
+	wsu_cor[i,j]<-cor.test(x[,7], x[,i+2])
+	} else {
+	wsu_cor[i,j]<-NA
+}
+}
+##THERE ARE NO WSU!
 
 # Total richness
 wsu.tot<-subset(a,a[,4]<=0.05)

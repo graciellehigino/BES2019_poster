@@ -1,0 +1,40 @@
+library(rasterVis)
+library(maptools)
+library(raster)
+library(rgdal)
+
+ma<-readOGR("data/raw/official/wwf_terr_ecos.shp")
+ma<-ma[ma$G200_REGIO %in% c("Atlantic Forests", "Atlantic dry Forests"),]
+ma<-aggregate(ma)
+
+r<-raster("data/raw/ai_et0/ai_et0.tif")
+load("output/results/df_by_cell.Rdata")
+r2<-raster(ext=extent(ma), resolution=0.125, vals=NULL)
+
+sp <- gwr.df
+coordinates(sp) <- ~longitude + latitude
+sp <- SpatialPoints( gwr.df[, c('longitude', 'latitude')],
+             proj4string=CRS("+proj=longlat +datum=WGS84") )
+sp <- SpatialPointsDataFrame(sp, gwr.df)
+coordinates(sp) <- ~longitude + latitude
+sp <- SpatialPoints( gwr.df[, c('longitude', 'latitude')],
++              proj4string=CRS("+proj=longlat +datum=WGS84") )
+sp <- SpatialPointsDataFrame(sp, gwr.df)
+crs(ma)
+projection(sp) <- "+proj=longlat +datum=WGS84"
+laea <- CRS(proj4string(ma))
+clb <- spTransform(sp, laea)
+
+rich <- rasterize(clb, r, 'sr_total')
+
+my.colors=c("#000000","#1c301c","#3a633a","#579657","#75c975")
+myTheme <- rasterTheme(region = rev(my.colors))
+#my.at=c(0,300,600,900,1200)
+#my.brks=seq(1, 400, 1200, by=300)
+#myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at))
+
+pdf("output/figures/species_richness.pdf")
+levelplot(rich, margin=FALSE, par.settings=myTheme, at=my.at, colorkey=myColorkey) + layer(sp.lines(ma, lwd=0.2, col='darkgreen')) + addnortharrow(pos = "topright", padin = c(0.15, 0.15), scale = 1,lwd = 1, border = "black", cols = c("white", "black"),text.col = "black")
+
+dev.off()
+
