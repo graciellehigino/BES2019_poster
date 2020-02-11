@@ -3,10 +3,11 @@ title: "BES2019 Poster"
 
 author:
 - Gracielle T. Higino^1^, ^2^ \*, Marcos V. C. Vital^2^
-- ^1^Department de Sciences Biologiques, Université de Montréal
-- ^2^Programa de Pós-Graduação em Ecologia e Evolução, Universidade Federal de Goiás
-- ^3^Departamento de Coisas Legais, Universidade Federal de Alagoas
+- ^1^ Department de Sciences Biologiques, Université de Montréal, Montréal, QC, Canada
+- ^2^ Programa de Pós-Graduação em Ecologia e Evolução, Universidade Federal de Goiás, Goiânia, GO, Brazil
+- ^3^ Instituto de Ciências Biológicas e da Saúde, Universidade Federal de Alagoas, Maceió, AL, Brazil
 - \*graciellehigino@gmail.com
+- Programa de Pós-Graduação em Ecologia e Evolução, Instituto de Ciências Biológicas (Bloco ICB IV), Universidade Federal de Goiás, Campus II/UFG, Avenida Esperança, s/n, Câmpus Samambaia, CEP. 74.690-900, Goiânia, Goiás, Brazil.
 
 date: "`r format(Sys.time(), '%d de %B de %Y')`"
 
@@ -36,8 +37,6 @@ if(!file.exists(out_dir)) {
   dir.create(out_dir)
 }
 ```
-
-
 
 ```{r r_packages, include = FALSE}
 # ipak function: install and load multiple R packages.
@@ -112,16 +111,19 @@ tab <- captioner(prefix="Table")
 
 # Abstract
 
-*BES*
 Biases and gaps on biodiversity data can have serious consequences on ecological and conservation research and actions, as it can lead to misconstrued hypotheses and incorrect conclusions. Although there is still digital knowledge to be found and organized, recent efforts on gathering global biodiversity data, such as data papers, have revealed long hidden information. Nevertheless, it is of major importance to map and describe the biases on the data we have available. Here we assessed terrestrial vertebrates inventory incompleteness at the Atlantic Rainforest and investigate if environmental variables are correlated to biodiversity knowledge. Our results showed clusters of quality information near big conservation centres. Environmental variables that commonly indicates species richness were not correlated to inventory completeness, but when only well-sampled units were analysed, mammals’ rarefaction slopes were correlated with potential evapotranspiration. Underexplored regions need urgent investments in sampling efforts to assess its real biodiversity and efficiently measure environmental impacts.
 
 
-**Keywords: biodiversity digital knowledge, wallacean shortfall, macroecology, **
+**Keywords: inventory completeness, rarefaction curves, data bias, Atlantic Rainforest.**
 
 ##### page break
 
 # Intro
-
+Information about life diversity and distribution is a fundamental tool for understanding evolutionary and ecological processes (Graham et al. 2004; Rocchini et al. 2011; Jetz et al. 2012; Ladle and Hortal 2013; Meyer et al. 2015). Since the 19th century, naturalists, taxonomists and, more recently, citizen scientists have been collecting global biodiversity information, resulting in the current knowledge of  species’ distribution on the planet (Humboldt et al. 1850; Hawkins 2001; Willig et al. 2003; Chase 2012). Museum data has been stored in electronic catalogues at slow pace since the 1970’s and more recently has been connected through web-based initiatives, improving biodiversity data gathering (Graham et al. 2004). As a result, we now have big databases such as Global Biodiversity Information Facility (GBIF; http://www.gbif.org/) and Map of Life (https://mol.org/) providing accessible and extensive information on biodiversity, compiling museum, survey and observation data (Graham et al. 2004; Jetz et al. 2012; Beck et al. 2013). However, despite these recent efforts, our knowledge on species diversity and distribution is still biased and full of gaps due to the complex nature of these information (Brown and Lomolino 1998; Whittaker et al. 2005). These shortfalls have been recently revised (Hortal et al. 2015) and there are growing evidence that they can compromise ecological, evolutionary and conservation analyses (IUCN 2012; Ladle and Hortal 2013; Ficetola et al. 2014; Hortal et al. 2015).
+The wallacean shortfall (the lack of information about species real distribution) is present in every spatial and temporal scales (Whittaker et al. 2005; Hortal 2008; Hortal et al. 2015) and is a consequence of a myriad of biological, environmental and social factors. Characteristics of the species (such as crypsis, its natural history and behaviour), political borders and topography, for example, can lead to biases in biodiversity surveys and form gaps in information. On the other hand, clustered information also can lead to biased surveys, since researchers may prefer to assess places knowingly species-rich or that are undergoing a process of ecological change (Boakes et al. 2010; Ahrends et al. 2011; Rocchini et al. 2011; Yang et al. 2014). Information gaps may also be a consequence of data quality decay in space (e.g., when we extrapolate the distribution of a species based on polygons or species distribution models) and time (due to taxonomic reviews, climate change, land use, habitat loss, extinction and migration) (Ladle and Hortal 2013). Therefore, the measurement of geographical variation of biodiversity on the planet (represented by distribution maps) has an error associated that must be assessed (Hortal 2008; Rocchini et al. 2011; Ladle and Hortal 2013; Yang et al. 2013).
+The acknowledgement of error in biodiversity information is of major importance. The underestimation of species distribution can have consequences in conservation planning, since range restriction is a classification criterion of species in risk of extinction (IUCN 2012; Ladle and Hortal 2013; Ficetola et al. 2014; Hortal et al. 2015). Furthermore, bias can influence and even reverse ecogeographical patterns, leading us to associate certain factors to species richness when they are only proxies for sampling quality (Ficetola et al. 2014). It has been recommended to include maps of ignorance in the results or to map data quality and use only well sampled locations on analyses (Hortal 2008; Ladle and Hortal 2013; Ficetola et al. 2014; Yang et al. 2014). Once researchers are aware of the error in their data sets, they can try to correct or diminish it and better analyse the results. This practice, in addition to guide future researches, produces more reliable results, since the exact measure of uncertainty clarifies how explicative an inference can be.
+There is a growing interest in biodiversity data biases in literature (see Boakes et al. 2010; Yang et al. 2013; Sousa-Baena et al. 2014). Nevertheless, studies mapping South American under-sampled sites are relatively few. This is worrying especially for the Atlantic Forest since it is an important biodiversity and socio-climatic hotspot (Scarano and Ceotto 2015). Human activities and the growth of urban centres have reduced its original area to only 8% (Galindo-Leal and Câmara 2003; Scarano and Ceotto 2015), resulting in substantial loss of habitat. Conservation units can decelerate this process, but their implementation need good biodiversity data. The Atlantic Rainforest is also a good model for ecological and evolutionary research because of its large latitudinal and altitudinal range, high endemicity, variation in temperature and precipitation, and historical connexion with other biomes (Silva and Casteleti 2003; Ribeiro et al. 2009; Batalha-Filho et al. 2013). Furthermore, its natural resilience allows the persistence of biodiversity and it hosts 1-8% of the world’s total species (Silva and Casteleti 2003). Therefore, biodiversity data biases must be studied in the Atlantic Forest in order to provide good quality inputs for all of these applications and guide new surveys.
+Given that the Atlantic Rainforest is a biodiversity hotspot, with a high rate of deforestation, it becomes urgent to describe and map the digital accessible knowledge gaps in this ecorregion. Here we aim to map and quantify these gaps with occurrence data of terrestrial vertebrates, and to identify environmental variables that may be related to these shortfalls (mean annual temperature, altitudinal range, potential evapotranspiration and vegetation). We expect that regions with high environmental heterogeneity and productivity would attract more researchers because of their relationship with high biodiversity.
 
 
 ##### page break
@@ -518,7 +520,7 @@ df<-df[, c(1, 4, 6)]
 mat<-spaa::data2mat(df)
 
 # From Stropp et al.:
-  spaccum <- specaccum(mat, method = "exact")  
+  spaccum <- specaccum(mat, method = "exact")
   total.slope <- (spaccum[[4]][length(spaccum[[4]])]-spaccum[[4]][ceiling(length(spaccum[[4]])*0.9)])/(length(spaccum[[4]])-ceiling(length(spaccum[[4]])*0.9))
   save(spaccum, total.slope, file="BES2019_poster/output/results/total_accum.Rdata")
 

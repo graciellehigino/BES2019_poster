@@ -1,15 +1,14 @@
-library(rasterVis)
 library(maptools)
 library(raster)
 library(rgdal)
+library(tmap)
 
 ma<-readOGR("data/raw/official/wwf_terr_ecos.shp")
 ma<-ma[ma$G200_REGIO %in% c("Atlantic Forests", "Atlantic dry Forests"),]
 ma<-aggregate(ma)
 
-r<-raster("data/raw/ai_et0/ai_et0.tif")
-load("output/results/df_by_cell.Rdata")
-r2<-raster(ext=extent(ma), resolution=0.125, vals=NULL)
+
+r2<-raster(ext=extent(ma), resolution=0.5, vals=NULL)
 
 sp <- gwr.df
 coordinates(sp) <- ~longitude + latitude
@@ -25,16 +24,110 @@ projection(sp) <- "+proj=longlat +datum=WGS84"
 laea <- CRS(proj4string(ma))
 clb <- spTransform(sp, laea)
 
-rich <- rasterize(clb, r, 'sr_total')
+rich <- rasterize(clb, r2, clb@data$sr_total, fun=sum)
 
-my.colors=c("#000000","#1c301c","#3a633a","#579657","#75c975")
-myTheme <- rasterTheme(region = rev(my.colors))
-#my.at=c(0,300,600,900,1200)
-#my.brks=seq(1, 400, 1200, by=300)
-#myColorkey <- list(at=my.brks, labels=list(at=my.brks, labels=my.at))
+pdf("output/figures/total_richness.pdf")
 
-pdf("output/figures/species_richness.pdf")
-levelplot(rich, margin=FALSE, par.settings=myTheme, at=my.at, colorkey=myColorkey) + layer(sp.lines(ma, lwd=0.2, col='darkgreen')) + addnortharrow(pos = "topright", padin = c(0.15, 0.15), scale = 1,lwd = 1, border = "black", cols = c("white", "black"),text.col = "black")
 
+legend_title = expression("Species Richness")
+tm_graticules(ticks = FALSE)+
+tm_shape(rich) + tm_raster(palette= "Greens", style="order", midpoint=0, title=legend_title) +
+tm_shape(ma) + tm_fill(alpha=0) + tm_polygons() + 
+	tm_layout(frame=FALSE, fontfamily="NimbusMon", fontface="plain", legend.bg.color="ghostwhite", legend.position=c("left", "top")) +
+	tm_compass(type = "4star", position = c("right", "bottom")) +
+	tm_scale_bar(breaks = c(0, 100, 200), text.size = 1)
+
+dev.off()  
+
+
+
+
+
+
+temperature_masked<-mask(temp, ma)
+topography_masked<-mask(topog,ma)
+ndvi_masked<-mask(ndvi,ma)
+pet_masked<-mask(pet,ma)
+save(temperature_masked, topography_masked, ndvi_masked, pet_masked, file="masked_rasters.Rdata")
+
+load("masked_rasters.Rdata")
+
+pdf("output/figures/topography_masked.pdf")
+
+
+legend_title = expression("Topography")
+tm_shape(topography_masked) +
+	tm_graticules(ticks = FALSE) +
+  tm_raster(palette= "Greens", n=10, title=legend_title) +
+	tm_layout(frame=FALSE, fontfamily="NimbusMon", fontface="plain", legend.bg.color="ghostwhite")+
+	tm_compass(type = "4star", position = c("right", "bottom")) +
+	tm_scale_bar(breaks = c(0, 100, 200), text.size = 1)
+
+dev.off()  
+
+
+#######
+GWR Maps
+
+load("output/results/gwr_results.Rdata")
+
+sp<-gwr_classes[[4]][[4]]$SDF
+crs(ma)
+projection(sp) <- "+proj=longlat +datum=WGS84"
+laea <- CRS(proj4string(ma))
+clb <- spTransform(sp, laea)
+
+r <- rasterize(clb, r2, clb@data$gwr.e)
+
+pdf("output/figures/res-rep-pet.pdf")
+
+
+legend_title = expression("Reptilia ~ PET (residuals)")
+tm_graticules(ticks = FALSE)+
+tm_shape(r) + tm_raster(palette= "RdYlGn", n=10, midpoint=0, title=legend_title) +
+tm_shape(ma) + tm_fill(alpha=0) + tm_polygons() + 
+	tm_layout(frame=FALSE, fontfamily="NimbusMon", fontface="plain", legend.bg.color="ghostwhite", legend.position=c("left", "top")) +
+	tm_compass(type = "4star", position = c("right", "bottom")) +
+	tm_scale_bar(breaks = c(0, 100, 200), text.size = 1)
+
+dev.off()  
+
+
+#####
+Slopes class
+
+slope <- rasterize(clb, r2, rareslope[[4]], fun=max)
+
+pdf("output/figures/slopes_rep.pdf")
+
+
+legend_title = expression("Reptilia Inventory Completeness")
+tm_graticules(ticks = FALSE)+
+tm_shape(rich) + tm_raster(palette= "-Greens", n=10, midpoint=0, title=legend_title) +
+tm_shape(ma) + tm_fill(alpha=0) + tm_polygons() + 
+	tm_layout(frame=FALSE, fontfamily="NimbusMon", fontface="plain", legend.bg.color="ghostwhite", legend.position=c("left", "top")) +
+	tm_compass(type = "4star", position = c("right", "bottom")) +
+	tm_scale_bar(breaks = c(0, 100, 200), text.size = 1)
+
+dev.off()  
+
+
+
+#####
+PCA
+
+rasters<-stack(rasterize(clb, r2, rareslope[[1]], fun=max), rasterize(clb, r2, rareslope[[2]], fun=max), rasterize(clb, r2, rareslope[[3]], fun=max), rasterize(clb, r2, rareslope[[4]], fun=max))
+names(rasters)<-c("amp", "aves", "mam", "rep")
+
+values <- getValues(rasters)
+pca <- prcomp(na.exclude(values), scale = TRUE)
+
+library(ggfortify)
+
+pdf("output/figures/pca-classes-slopes.pdf")
+autoplot(prcomp(na.exclude(values)), scale=0, loadings=TRUE, shape=FALSE, label = FALSE, loadings.colour = 'darkgreen',
+         loadings.label = TRUE , loadings.label.size = 7, loadings.label.colour="black", loadings.label.repel=T) + theme_minimal()
 dev.off()
+
+
 
