@@ -15,7 +15,7 @@ if(file.exists("data/raw/data.Rdata")){
 
   for (i in 1:length(datasource$url)){
      files <-  list(download.file(datasource$url[i], filenames[i]))
-     unzip(filenames[i], exdir = "/data/raw")
+     unzip(filenames[i], exdir = "data/raw")
      }
   rm(filenumbers, filenames, files)
 
