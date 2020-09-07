@@ -36,8 +36,16 @@ if(file.exists("data/raw/data.Rdata")){
   rm(cols, bat_capture, bat_sites)
 
   # Small Mammals
-  mamsmall_dp <- dplyr::inner_join(read.csv("data/raw/ATLANTIC_SM_Study_Site.csv"),
-                  read.csv("data/raw/ATLANTIC_SM_Capture.csv"), by = "ID.")
+  mamsmall_site <- readr::read_csv("data/raw/ATLANTIC_SM_Study_Site.csv", col_names=FALSE)
+  mamsmall_site[1,1] <- "ID."
+  colnames(mamsmall_site) <- mamsmall_site[1,]
+
+  mamsmall_capture <- readr::read_csv("data/raw/ATLANTIC_SM_Capture.csv", col_names=FALSE)
+  mamsmall_capture[1,1] <- "ID."
+  colnames(mamsmall_capture) <- mamsmall_capture[1,]
+
+  mamsmall_dp <- dplyr::inner_join(mamsmall_site,mamsmall_capture, by = "ID.")
+  rm(mamsmall_site,mamsmall_capture)
 
   # Camtraps Mammals
   loc <- read.csv("data/raw/ATLANTIC_CAMTRAPS_1-0_LOCATION.csv")
