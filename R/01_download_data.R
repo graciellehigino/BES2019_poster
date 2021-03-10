@@ -1,5 +1,5 @@
 # Read CSV with urls for all data
-#devtools::install_github("tidyverse/googlesheets4")
+#devtools::install_github("tidyverse/googlesheets4", force = TRUE)
 datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
 
 # geting zip files from Data Papers
@@ -80,5 +80,5 @@ if(file.exists("data/raw/data.Rdata")){
   unzip("data/raw/idigbio.zip", exdir = "data/raw")
   idigbio <- read.csv("data/raw/occurrence_raw.csv")
 
-save(gbif, amp_dp, bat_dp, mamsmall_dp, mamct_dp, mamprim_dp, mamsmall2_dp, birds_dp, idigbio file = "data/raw/data.Rdata")
+save(gbif, amp_dp, bat_dp, mamsmall_dp, mamct_dp, mamprim_dp, mamsmall2_dp, birds_dp, idigbio, file = "data/raw/data.Rdata")
 }

@@ -49,7 +49,8 @@ ipak(packages_list <- c(
                        "tm",
                        "tidylog",
                        "vegan",
-                       "vroom"
+                       "vroom",
+                       "rgbif"
                        )
      )
 

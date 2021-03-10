@@ -20,27 +20,29 @@ for (i in mam){
 
 # Select only columns for lat, long and species name
 mam[[2]] <- mam[[2]][,1:3]
-mam[[3]] <- mam[[3]][,c(1,2,4)]
+mam[[3]] <- as.data.frame(mam[[3]][,c(1,2,4)])
 mam[[4]] <- mam[[4]][,c(1,2,4)]
 mam[[5]] <- mamct_dp[,c(7,6,36)]
 rm(mamct_dp)
+
+
 
 # Standardazing colnames
 for (i in 1:5) {
   colnames(mam[[i]]) <- c("latitude", "longitude", "species")
 }
 
+mam <- lapply(mam, function(df) mutate_at(df, .vars = 1:2, as.numeric))
+
 # Merging
 mam <- bind_rows(mam)
 
 ## iDigBio
 idigbio <- idigbio %>%
-    rename(
-      latitude = dwc.decimalLatitude,
-      longitude = dwc.decimalLongitude,
-      class = dwc.classs,
-      species = dwc.scientificName
-    ) %>%
+    rename(latitude = dwc.decimalLatitude,
+           longitude = dwc.decimalLongitude,
+           class = dwc.classs,
+           species = dwc.scientificName) %>%
     select(class, species, latitude, longitude) %>%
     drop_na() %>%
     group_by(species) %>%
@@ -56,7 +58,7 @@ idigbio <- idigbio %>%
   # 174 = Mammal Species of the World
   # 175 = BirdLife International
 
-  idb_spnames<-parLapply(c, as.character(idigbio$species), gnr_resolve,
+idb_spnames <- parLapply(c, as.character(idigbio$species), gnr_resolve,
                          data_source_ids=c(173,3,4,11,174,175),
                          resolve_once=FALSE,
                          with_context=FALSE,canonical=FALSE,highestscore=TRUE,
