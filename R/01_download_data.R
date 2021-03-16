@@ -8,7 +8,7 @@ if(file.exists("data/raw/data.Rdata")){
   load("data/raw/data.Rdata")
 } else {
 
-  gbif<-occ_download_import(occ_download_get("0023533-180131172636756", path = "data/raw", overwrite = TRUE), quote = "")
+  gbif<-occ_download_import(occ_download_get("0222093-200613084148143", path = "data/raw", overwrite = TRUE), quote = "")
 
   filenumbers <- 1:length(datasource$url)
   filenames <- paste0("data/raw/file", filenumbers, ".zip")
