@@ -76,7 +76,7 @@ if(file.exists("data/raw/data.Rdata")){
   birds_dp <- read.csv("data/raw/DataS1/DataS1/ATLANTIC_BIRDS_qualitative.csv")
 
   ## iDigBio
-  download.file("http://s.idigbio.org/idigbio-downloads/48532368-4e8e-4166-90f9-a4ee28002a4b.zip", "data/raw/idigbio.zip")
+  download.file("http://s.idigbio.org/idigbio-downloads/07a15b25-fd95-4826-a26c-2cf12d9a01aa.zip", "data/raw/idigbio.zip")
   unzip("data/raw/idigbio.zip", exdir = "data/raw")
   idigbio <- read.csv("data/raw/occurrence_raw.csv")
 
