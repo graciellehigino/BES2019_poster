@@ -1,5 +1,5 @@
 # Read CSV with urls for all data
-#devtools::install_github("tidyverse/googlesheets4", force = TRUE)
+
 datasource <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1qq6YTTcAIZVI9olRVgSm5sKVlxuS-4yW-yD06TXJzgg/edit?usp=sharing")
 
 # geting zip files from Data Papers

@@ -4,8 +4,8 @@ rm(amp_dp)
 
 
 ## Aves
-ave <- birds_dp %>% select(Latitude_y,Longitude_x,Species)
-colnames(ave) <- c("latitude", "longitude", "species")
+aves <- birds_dp %>% select(Latitude_y,Longitude_x,Species)
+colnames(aves) <- c("latitude", "longitude", "species")
 rm(birds_dp)
 
 ## Mammals

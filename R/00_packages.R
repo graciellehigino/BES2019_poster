@@ -67,3 +67,8 @@ write.bib(packages_list, "manuscript/sources/installed-r-packages.bib")
 
 fig <- captioner(prefix ="Figure")
 tab <- captioner(prefix="Table")
+
+# From GitHub -------------------------------------------------------------
+
+# Use this session only whether GitHub packages are not installed
+# devtools::install_github("tidyverse/googlesheets4", force = TRUE) # Make sure you have RTools installed <>
