@@ -13,3 +13,7 @@ pa3 <- pa3[pa3@data$REP_M_AREA==0,]
 pa <- raster::bind(pa1, pa2, pa3)
 rm(pa1, pa2, pa3)
 
+r <- raster(ext=extent(ma), resolution=0.009)
+pa_raster <- rasterize(pa, r)
+
+# Distance from PA------
